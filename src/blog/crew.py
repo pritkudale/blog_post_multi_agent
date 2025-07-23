@@ -1,7 +1,39 @@
+# Import our CrewAI LLM interceptor BEFORE importing crewai
+from .crewai_llm_wrapper import InterceptedCrewAILLM
+
+# Monkey patch BEFORE any other CrewAI imports
+import crewai.llm
+print("\n>>> Monkey-patching CrewAI's LLM class with our interceptor... <<<")
+crewai.llm.LLM = InterceptedCrewAILLM
+print(">>> Monkey-patch complete! <<<\n")
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
+
+# Additional patches for modules that might have already imported LLM
+import crewai.crew
+import crewai.agent
+import crewai.utilities.llm_utils
+
+# Patch the crew module's LLM reference
+if hasattr(crewai.crew, 'LLM'):
+    print(">>> Patching crewai.crew.LLM reference... <<<")
+    crewai.crew.LLM = InterceptedCrewAILLM
+
+# Patch any agent module references
+if hasattr(crewai.agent, 'LLM'):
+    print(">>> Patching crewai.agent.LLM reference... <<<")
+    crewai.agent.LLM = InterceptedCrewAILLM
+
+# Patch utilities
+if hasattr(crewai.utilities.llm_utils, 'LLM'):
+    print(">>> Patching crewai.utilities.llm_utils.LLM reference... <<<")
+    crewai.utilities.llm_utils.LLM = InterceptedCrewAILLM
+
+print(">>> All LLM references patched! <<<\n")
+
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators
 # https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
@@ -23,21 +55,21 @@ class Blog():
     def planner(self) -> Agent:
         return Agent(
             config=self.agents_config['planner'], # type: ignore[index]
-            verbose=True
+            verbose=True,
         )
 
     @agent
     def writer(self) -> Agent:
         return Agent(
             config=self.agents_config['writer'], # type: ignore[index]
-            verbose=True
+            verbose=True,
         )
     
     @agent
     def editor(self) -> Agent:
         return Agent(
             config=self.agents_config['editor'], # type: ignore[index]
-            verbose=True
+            verbose=True,
         )
 
     # To learn more about structured task outputs,

@@ -23,8 +23,17 @@ def run():
     }
     
     try:
-        Blog().crew().kickoff(inputs=inputs)
+        result = Blog().crew().kickoff(inputs=inputs)
+        
+        # Print model usage summary after execution
+        from .crewai_llm_wrapper import print_usage_summary
+        print_usage_summary()
+        
+        return result
     except Exception as e:
+        # Still print summary even if there's an error
+        from .crewai_llm_wrapper import print_usage_summary
+        print_usage_summary()
         raise Exception(f"An error occurred while running the crew: {e}")
 
 
